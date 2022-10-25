@@ -28,7 +28,7 @@ for i in (seq 1 (count $testCases))
     set -l expected $expecteds[$i]
     set -l args (string split " " $testCase)
     @test "Support commands: $args" (
-        echo (__FCI_plugin_kubectl_fzf $args)
+        echo (fci_plugin_kubectl_fzf $args)
     ) = $expected
 end
 
@@ -47,6 +47,6 @@ set testCases \
 for testCase in $testCases
     set -l args (string split " " $testCase)
     @test "Unsupported commands: $args" (
-        __FCI_plugin_kubectl_fzf $args
+        fci_plugin_kubectl_fzf $args
     ) $status -ne 0
 end

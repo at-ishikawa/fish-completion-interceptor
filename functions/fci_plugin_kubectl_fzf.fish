@@ -1,4 +1,4 @@
-function __FCI_plugin_kubectl_fzf
+function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to run kubectl fzf"
     # TODO: Support options for each sub command
     argparse --ignore-unknown \
         'n/namespace=' \

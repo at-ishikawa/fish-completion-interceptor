@@ -1,2 +1,2 @@
 test:
-	fishtape tests/*.fish
+	fish -c "fishtape tests/*.fish"
