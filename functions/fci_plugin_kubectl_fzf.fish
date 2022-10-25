@@ -1,7 +1,7 @@
 function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to run kubectl fzf"
     # TODO: Support options for each sub command
     argparse --ignore-unknown \
-        'n/namespace=' \
+        $__fci_plugin_kubectl_fzf_kubectl_global_options \
         -- $argv
 
     set -l namespace "$_flag_namespace"
@@ -43,7 +43,7 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
 
     set -l options
     if [ "$namespace" != "" ]
-        set options -n $namespace
+        set options $options -n $namespace
     end
     if [ "$query" != "" ]
         set options $options -q $query
