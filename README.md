@@ -21,6 +21,8 @@ fisher install at-ishikawa/fish-completion-interceptor
 Configuration
 ---
 If you try to use completion by a tab key, this tool is used automatically for specific commands.
+Define `set -U FISH_COMPLETION_INTERCEPTOR_ENABLED = false` in your config.fish if you want to disable this package.
+
 If you want to use some completions if there is no that command instead of normal completion, define `fish_completion_interceptor_fallback` function in your config file.
 For example, if you use [jethrokuan/fzf](https://github.com/jethrokuan/fzf), you can still use that plugin by defining the next function in `~/.config/fish/config.fish`.
 

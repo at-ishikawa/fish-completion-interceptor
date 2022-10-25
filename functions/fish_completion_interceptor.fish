@@ -30,11 +30,5 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
         fish_completion_interceptor_fallback
         return $status
     end
-    complete -C$cmd
-    commandline -f repaint
-    return 0
+    commandline -f complete
 end
-
-# function fish_completion_interceptor_fallback
-#     __fzf_complete
-# end
