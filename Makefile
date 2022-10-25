@@ -1,5 +1,5 @@
 generate:
-	fish init.fish
+	fish generate.fish
 
 test:
 	fish -c "fishtape tests/*.fish"

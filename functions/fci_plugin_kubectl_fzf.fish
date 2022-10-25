@@ -1,45 +1,43 @@
 function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to run kubectl fzf"
     # TODO: Support options for each sub command
-    argparse --ignore-unknown \
-        $__fci_plugin_kubectl_fzf_kubectl_global_options \
-        -- $argv
+    argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_global_options -- $argv
 
     set -l namespace "$_flag_namespace"
-    set -l lastArg $argv[-1]
 
-    set -f resource
-    set -f query
-    set -f i 2
-    while [ $i -le (count $argv) ]
-        set -l arg $argv[$i]
-        switch $arg
-            case "port-forward"
-                # Check that current cursor is on this
-                if [ "$arg" = "$lastArg" ]
-                    return 1
-                end
-                set resource "pods,services"
-            case "log" "logs"
-                # Check that current cursor is on this
-                if [ "$arg" = "$lastArg" ]
-                    return 1
-                end
-
-                set resource "pods"
-            case "get"  "describe" "delete"
-                set i (math $i + 1)
-                # TODO: Assuming no options between subcommand and resource
-                set resource $argv[$i]
-            # TODO support for other subcommands like rollout
-            case '*'
-                set query $arg
-        end
-        set i (math $i + 1)
-    end
-
-    if [ "$resource" = "" ]; or [ "$resource" = "$lastArg" ];
+    # $argv[1]: kubectl
+    # $argv[2]: sub command
+    set -l subcommand $argv[2]
+    if [ "$subcommand" = "$argv[-1]" ]
         return 1
     end
+
+    set -l resource
+    switch $subcommand
+    case "port-forward"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_port_forward_options -- $argv
+        set resource "pods,services"
+    case "log" "logs"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_logs_options -- $argv
+        set resource "pods"
+    case "get"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_get_options -- $argv
+        set resource $argv[3]
+    case "describe"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_describe_options -- $argv
+        set resource $argv[3]
+    case "delete"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_delete_options -- $argv
+        set resource $argv[3]
+    # TODO support for other subcommands like rollout
+    case '*'
+        return 1
+    end
+
+    if [ "$resource" = "" ]; or [ "$resource" = "$argv[-1]" ]
+        return 1
+    end
+
+    set -l query $argv[-1]
 
     set -l options
     if [ "$namespace" != "" ]

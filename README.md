@@ -50,8 +50,6 @@ There are numerous unsupported use cases by this tool.
 There are also a lot of unsupported features on a kubectl fzf plugin
 
 ### kubectl fzf
-- Options are not recognized except -n/--namespace
-    - And in many cases, options are not supported well. For example, there should be no option between `get/describe/delete` and resource.
 - There are some subcommands that completion do not work, like `rollout`
 
 
@@ -63,4 +61,5 @@ Development
 
 ### Commmands
 
+* `make generate:`: Generate configuration files that are supposed to be generated automatically. `kubectl` is required.
 * `make test`: Run test cases
