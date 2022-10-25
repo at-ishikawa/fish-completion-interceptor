@@ -1,0 +1,2 @@
+test:
+	fishtape tests/*.fish

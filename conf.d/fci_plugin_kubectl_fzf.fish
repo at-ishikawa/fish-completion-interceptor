@@ -1,0 +1,1 @@
+set __FCI_PLUGIN_KUBECTL_FZF_COMMAND "kubectl fzf"
