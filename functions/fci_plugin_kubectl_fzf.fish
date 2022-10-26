@@ -36,24 +36,39 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
     if [ "$resource" = "" ]; or [ "$resource" = "$argv[-1]" ]
         return 0
     end
-
     set -l query $argv[-1]
 
-    set -l options
+    set -l kubectl_options
     if [ "$namespace" != "" ]
-        set options $options -n $namespace
+        set kubectl_options $kubectl_options --namespace=$namespace
     end
-    if [ "$query" != "" ]
-        set options $options -q $query
+    if string match -q "*,*" $resource; or [ "$resource" = "all" ]
+        set -l kubectl_options $kubectl_options --no-headers=true
     end
-
-    # TODO: Handle an error. fzf shows interface on stderr so redirect stderr stops it working
-    # set -l result (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options 2>&1)
-    set -l result (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options)
+    set -l candidates (kubectl get $resource $kubectl_options 2>&1)
+    set -l kubectl_status $status
     if [ $status -ne 0 ]
-        # echo "$result" >&2
+        echo "$candidates" 2>&1
+        return $kubectl_status
+    end
+    if [ (string split0 $candidates | wc -l) -lt 2 ]
+        echo "$candidates" 2>&1
         return 1
     end
+
+    set -l fzf_options $__FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION --preview="kubectl describe $resource {1}"
+    if [ "$query" != "" ]
+        set fzf_options $fzf_options -q $query
+    end
+
+    set -l fzf_result (string split0 $candidates | fzf $fzf_options)
+    set -l fzf_status $status
+    if [ $status -ne 0 ];
+        echo $fzf_result >&2
+        return $fzf_status
+    end
+
+    set -l result (string split0 $fzf_result | awk '{ print $1 }' | string trim)
     if [ "$result" = "" ]
         return 1
     end
