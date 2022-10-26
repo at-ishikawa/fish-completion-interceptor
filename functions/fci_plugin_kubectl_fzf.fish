@@ -47,8 +47,9 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
         set options $options -q $query
     end
 
-    set -l result (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options)
+    set -l result (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options 2>&1)
     if [ $status -ne 0 ]
+        echo "$result" >&2
         return 1
     end
     if [ "$result" = "" ]
