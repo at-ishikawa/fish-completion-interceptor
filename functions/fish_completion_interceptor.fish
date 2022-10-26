@@ -18,10 +18,7 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
             break
         end
 
-        # TODO: Replacing a current token instead of inserting
-        # For example, if current token is fis, and fish is selected,
-        # then instead of outputting fisfish, output fish
-        commandline -i (echo $result)
+        commandline -t (echo $result)
         commandline -f repaint
         return 0
     end

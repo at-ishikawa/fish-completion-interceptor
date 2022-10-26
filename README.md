@@ -1,8 +1,6 @@
 Fish Completion Interceptor
 ===
 
-**This tool is still unstable and immature, and under development without any plans**
-
 This tool is to run a command for specific commands instead of showing regular completions of fish.
 
 
@@ -45,14 +43,10 @@ set -U FISH_COMPLETION_INTERCEPTOR_PLUGINS $FISH_COMPLETION_INTERCEPTOR_PLUGINS 
 
 TODOs
 ---
-There are numerous unsupported use cases by this tool.
-
-- Replace the current argument with selected element instead of inserting
-
-There are also a lot of unsupported features on a kubectl fzf plugin
+There are some unsupported features of this tool.
 
 ### kubectl fzf
-- There are some subcommands that completion do not work, like `rollout`
+- There are some subcommands that completion do not work, like `rollout`.
 
 
 Development
