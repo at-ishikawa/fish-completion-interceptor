@@ -15,8 +15,8 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
         # Dynamically call a function
         set -l result (eval "$functionName" $args $lastArg 2>&1)
         if [ $status -ne 0 ]
-            echo >&2
-            echo "$result" >&2
+            # echo >&2
+            # echo "$result" >&2
             commandline -f repaint
             return $status
         end

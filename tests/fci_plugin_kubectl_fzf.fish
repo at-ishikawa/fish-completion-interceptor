@@ -96,7 +96,8 @@ function mock_kubectl
     echo "stderr" >&2
     return 1
 end
-run_test "Error while running the kubectl fzf" $successful_command 1 "" "stderr"
+# TODO: stderr is just output currently
+run_test "Error while running the kubectl fzf" $successful_command 1 "" ""
 
 function mock_kubectl
     # show an empty data
