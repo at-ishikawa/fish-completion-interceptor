@@ -8,7 +8,7 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
     # $argv[2]: sub command
     set -l subcommand $argv[2]
     if [ "$subcommand" = "$argv[-1]" ]
-        return 1
+        return 0
     end
 
     set -l resource
@@ -30,11 +30,11 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
         set resource $argv[3]
     # TODO support for other subcommands like rollout
     case '*'
-        return 1
+        return 0
     end
 
     if [ "$resource" = "" ]; or [ "$resource" = "$argv[-1]" ]
-        return 1
+        return 0
     end
 
     set -l query $argv[-1]
@@ -46,5 +46,14 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
     if [ "$query" != "" ]
         set options $options -q $query
     end
-    echo (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options)
+
+    set -l result (eval $__FCI_PLUGIN_KUBECTL_FZF_COMMAND $resource $options)
+    if [ $status -ne 0 ]
+        return 1
+    end
+    if [ "$result" = "" ]
+        return 1
+    end
+    echo $result
+    return 0
 end
