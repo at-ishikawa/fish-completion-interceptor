@@ -14,11 +14,12 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
 
         # Dynamically call a function
         set -l result (eval "$functionName" $args $lastArg 2>&1)
-        if [ $status -ne 0 ]
-            # echo >&2
-            # echo "$result" >&2
+        set -l function_status $status
+        if [ $function_status -ne 0 ]
+            echo >&2
+            echo "$result" >&2
             commandline -f repaint
-            return $status
+            return $function_status
         end
         if [ "$result" = "" ]
             break
