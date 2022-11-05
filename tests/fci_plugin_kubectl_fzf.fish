@@ -58,12 +58,12 @@ set expected_fzf_options \
     "$default_expected_fzf_option -q pod2 --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace" \
     "$default_expected_fzf_option -q name --header-lines 1 --preview=kubectl describe crd {1}" \
     "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe deploy {1} --namespace=namespace" \
-    "$default_expected_fzf_option --preview=kubectl describe pods,services {1}" \
+    "$default_expected_fzf_option --preview=kubectl describe {1}" \
     "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe pods {1}" \
     "$default_expected_fzf_option -q svc-name --header-lines 1 --preview=kubectl describe svc {1}" \
     "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe cm {1}" \
-    "$default_expected_fzf_option --preview=kubectl describe ingress,svc {1}" \
-    "$default_expected_fzf_option --preview=kubectl describe all {1}" \
+    "$default_expected_fzf_option --preview=kubectl describe {1}" \
+    "$default_expected_fzf_option --preview=kubectl describe {1}" \
     "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe daemonsets {1} --namespace=namespace"
 
 for i in (seq 1 (count $test_cases))
