@@ -52,22 +52,19 @@ set expected_kubectl_commands \
 
 
 set default_expected_fzf_option $FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION
-function get_expected_fzf_option -a resource
-    echo "$default_expected_fzf_option --preview=kubectl describe $resource {1}"
-end
 
 set expected_fzf_options \
-    "$default_expected_fzf_option -q name --preview=kubectl describe pods {1} --namespace=namespace" \
-    "$default_expected_fzf_option -q pod2 --preview=kubectl describe pods {1} --namespace=namespace" \
-    "$default_expected_fzf_option -q name --preview=kubectl describe crd {1}" \
-    "$default_expected_fzf_option --preview=kubectl describe deploy {1} --namespace=namespace" \
-    (get_expected_fzf_option "pods,services") \
-    (get_expected_fzf_option "pods") \
-    "$default_expected_fzf_option -q svc-name --preview=kubectl describe svc {1}" \
-    (get_expected_fzf_option "cm") \
-    (get_expected_fzf_option "ingress,svc") \
-    (get_expected_fzf_option "all") \
-    "$default_expected_fzf_option --preview=kubectl describe daemonsets {1} --namespace=namespace"
+    "$default_expected_fzf_option -q name --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace" \
+    "$default_expected_fzf_option -q pod2 --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace" \
+    "$default_expected_fzf_option -q name --header-lines 1 --preview=kubectl describe crd {1}" \
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe deploy {1} --namespace=namespace" \
+    "$default_expected_fzf_option --preview=kubectl describe pods,services {1}" \
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe pods {1}" \
+    "$default_expected_fzf_option -q svc-name --header-lines 1 --preview=kubectl describe svc {1}" \
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe cm {1}" \
+    "$default_expected_fzf_option --preview=kubectl describe ingress,svc {1}" \
+    "$default_expected_fzf_option --preview=kubectl describe all {1}" \
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe daemonsets {1} --namespace=namespace"
 
 for i in (seq 1 (count $test_cases))
     set -l test_case $test_cases[$i]
