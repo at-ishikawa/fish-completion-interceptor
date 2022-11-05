@@ -1,9 +1,9 @@
-function __fci_plugin_kubectl_fzf_run_kubectl -a resource -a namespace
+function __fci_plugin_kubectl_fzf_run_kubectl -a resource -a namespace -a has_header
     set -l kubectl_options
     if [ "$namespace" != "" ]
         set kubectl_options $kubectl_options --namespace=$namespace
     end
-    if string match -q "*,*" "$resource"; or [ "$resource" = "all" ]
+    if not $has_header
         set kubectl_options $kubectl_options --no-headers=true
     end
     $__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get $resource $kubectl_options
@@ -16,7 +16,8 @@ function __fci_plugin_kubectl_fzf_run_fzf
     set -l resource $argv[1]
     set -l namespace $argv[2]
     set -l query $argv[3]
-    set -l candidates $argv[4..-1]
+    set -l has_header $argv[4]
+    set -l candidates $argv[5..-1]
 
     set -l preview_command "kubectl describe $resource {1}"
     if [ "$namespace" != "" ]
@@ -25,6 +26,9 @@ function __fci_plugin_kubectl_fzf_run_fzf
     set -l fzf_options $FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION
     if [ "$query" != "" ]
         set fzf_options $fzf_options -q $query
+    end
+    if $has_header
+        set fzf_options $fzf_options --header-lines 1
     end
 
     set -l fzf_result (string split0 $candidates | $__FCI_PLUGIN_KUBECTL_FZF_FZF_CLI $fzf_options --preview="$preview_command")
@@ -75,12 +79,18 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
         return 0
     end
 
+    string match -q "*,*" "$resource"; or [ "$resource" = "all" ]
     if [ "$resource" = "" ]; or [ "$resource" = "$argv[-1]" ]
         return 0
     end
+    set -l has_header true
+    if string match -q "*,*" "$resource"; or [ "$resource" = "all" ]
+        set has_header false
+    end
+
     set -l query $argv[-1]
 
-    set -l candidates (__fci_plugin_kubectl_fzf_run_kubectl $resource "$namespace" 2>&1)
+    set -l candidates (__fci_plugin_kubectl_fzf_run_kubectl $resource "$namespace" $has_header 2>&1)
     set -l kubectl_status $status
     if [ $status -ne 0 ]
         echo "$candidates" >&2
@@ -91,7 +101,7 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
         return 1
     end
 
-    set -l result (__fci_plugin_kubectl_fzf_run_fzf $resource "$namespace" "$query" $candidates)
+    set -l result (__fci_plugin_kubectl_fzf_run_fzf $resource "$namespace" "$query" $has_header $candidates)
     set -l fzf_status $status
     if [ $fzf_status -ne 0 ];
         echo $result >&2
