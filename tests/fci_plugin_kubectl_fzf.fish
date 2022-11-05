@@ -35,7 +35,8 @@ set test_cases \
     "kubectl get cm --output yaml " \
     "kubectl get ingress,svc " \
     "kubectl get all " \
-    "kubectl edit -n namespace daemonsets "
+    "kubectl edit -n namespace daemonsets " \
+    "kubectl -n namespace exec "
 
 set expected_kubectl_commands \
     "get pods --namespace=namespace" \
@@ -48,7 +49,8 @@ set expected_kubectl_commands \
     "get cm" \
     "get ingress,svc --no-headers=true" \
     "get all --no-headers=true" \
-    "get daemonsets --namespace=namespace"
+    "get daemonsets --namespace=namespace" \
+    "get pods --namespace=namespace"
 
 
 set default_expected_fzf_option $FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION
@@ -64,7 +66,8 @@ set expected_fzf_options \
     "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe cm {1}" \
     "$default_expected_fzf_option --preview=kubectl describe {1}" \
     "$default_expected_fzf_option --preview=kubectl describe {1}" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe daemonsets {1} --namespace=namespace"
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe daemonsets {1} --namespace=namespace" \
+    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace"
 
 for i in (seq 1 (count $test_cases))
     set -l test_case $test_cases[$i]
