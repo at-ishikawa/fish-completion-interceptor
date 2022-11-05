@@ -67,3 +67,6 @@ parseKubectlOptions (kubectl port-forward --help | grep '^\s*-' | cut -d ':' -f 
 
 echo "set -g __fci_plugin_kubectl_fzf_kubectl_logs_options \\" >> $generatedFilePath
 parseKubectlOptions (kubectl logs --help | grep '^\s*-' | cut -d ':' -f 1) >> $generatedFilePath
+
+echo "set -g __fci_plugin_kubectl_fzf_kubectl_edit_options \\" >> $generatedFilePath
+parseKubectlOptions (kubectl edit --help | grep '^\s*-' | cut -d ':' -f 1) >> $generatedFilePath
