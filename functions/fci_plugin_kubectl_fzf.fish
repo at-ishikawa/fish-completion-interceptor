@@ -19,16 +19,20 @@ function __fci_plugin_kubectl_fzf_run_fzf
     set -l has_header $argv[4]
     set -l candidates $argv[5..-1]
 
-    set -l preview_command "kubectl describe $resource {1}"
-    if [ "$namespace" != "" ]
-        set preview_command "$preview_command" "--namespace=$namespace"
-    end
     set -l fzf_options $FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION
     if [ "$query" != "" ]
         set fzf_options $fzf_options -q $query
     end
+    set -l preview_command
     if $has_header
         set fzf_options $fzf_options --header-lines 1
+        set preview_command "kubectl describe $resource {1}"
+    else
+        # if there is no header, it means kubectl runs againts multiple resources or all
+        set preview_command "kubectl describe {1}"
+    end
+    if [ "$namespace" != "" ]
+        set preview_command "$preview_command" "--namespace=$namespace"
     end
 
     set -l fzf_result (string split0 $candidates | $__FCI_PLUGIN_KUBECTL_FZF_FZF_CLI $fzf_options --preview="$preview_command")
