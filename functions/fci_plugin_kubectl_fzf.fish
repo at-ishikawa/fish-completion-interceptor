@@ -58,6 +58,9 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
     case "log" "logs"
         argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_logs_options -- $argv
         set resource "pods"
+    case "edit"
+        argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_edit_options -- $argv
+        set resource $argv[3]
     case "get"
         argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_get_options -- $argv
         set resource $argv[3]

@@ -104,3 +104,16 @@ set -g __fci_plugin_kubectl_fzf_kubectl_logs_options \
 	'since-time=' \
 	'tail=' \
 	'timestamps=?'
+set -g __fci_plugin_kubectl_fzf_kubectl_edit_options \
+	'allow-missing-template-keys=?' \
+	'field-manager=' \
+	'f/filename=' \
+	'k/kustomize=' \
+	'o/output=' \
+	'output-patch=?' \
+	'record=?' \
+	'R/recursive=?' \
+	'save-config=?' \
+	'template=' \
+	'validate=?' \
+	'windows-line-endings=?'
