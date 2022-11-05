@@ -56,6 +56,7 @@ set -g __fci_plugin_kubectl_fzf_kubectl_get_options \
 	'server-print=?' \
 	'show-kind=?' \
 	'show-labels=?' \
+	'show-managed-fields=?' \
 	'sort-by=' \
 	'template=' \
 	'w/watch=?' \
@@ -114,6 +115,7 @@ set -g __fci_plugin_kubectl_fzf_kubectl_edit_options \
 	'record=?' \
 	'R/recursive=?' \
 	'save-config=?' \
+	'show-managed-fields=?' \
 	'template=' \
 	'validate=?' \
 	'windows-line-endings=?'
@@ -121,5 +123,6 @@ set -g __fci_plugin_kubectl_fzf_kubectl_exec_options \
 	'c/container=' \
 	'f/filename=' \
 	'pod-running-timeout=' \
+	'q/quiet=?' \
 	'i/stdin=?' \
 	't/tty=?'
