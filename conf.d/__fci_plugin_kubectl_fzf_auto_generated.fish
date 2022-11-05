@@ -117,3 +117,9 @@ set -g __fci_plugin_kubectl_fzf_kubectl_edit_options \
 	'template=' \
 	'validate=?' \
 	'windows-line-endings=?'
+set -g __fci_plugin_kubectl_fzf_kubectl_exec_options \
+	'c/container=' \
+	'f/filename=' \
+	'pod-running-timeout=' \
+	'i/stdin=?' \
+	't/tty=?'
