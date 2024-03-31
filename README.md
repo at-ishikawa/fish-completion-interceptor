@@ -58,7 +58,7 @@ end
 set -U FISH_COMPLETION_INTERCEPTOR_PLUGINS $FISH_COMPLETION_INTERCEPTOR_PLUGINS "foo=your_command_interceptor"
 ```
 
-For more details, see [the plugin spec doc](./docs/plugin_spec).
+For more details, see [the plugin spec doc](./docs/plugin_spec.md).
 
 ## Development
 
