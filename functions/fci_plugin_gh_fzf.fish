@@ -41,7 +41,7 @@ function __fci_plugin_gh_fzf_pr_list -d "The list of PRs" \
             set fzf_options $fzf_options "--query=$fzf_query"
         end
 
-        set -l fzf_result (string split0 "$candidates" | $__FCI_PLUGIN_GH_FZF_FZF_CLI $fzf_options)
+        set -l fzf_result (string split0 $candidates | $__FCI_PLUGIN_GH_FZF_FZF_CLI $fzf_options)
         set -l fzf_status $status
         if [ $fzf_status -ne 0 ]
             echo -n -e "$fzf_result" >&2
