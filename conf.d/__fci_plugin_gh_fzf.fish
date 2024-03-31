@@ -1,0 +1,1 @@
+set __FCI_PLUGIN_GH_FZF_GH_CLI gh

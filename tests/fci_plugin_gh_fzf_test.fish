@@ -1,5 +1,5 @@
 set __FCI_PLUGIN_GH_FZF_GH_CLI mock_gh
-set __FCI_PLUGIN_GH_FZF_FZF_CLI mock_fzf
+set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 
 function run_gh_test \
     -a commandline_arg \
@@ -14,14 +14,15 @@ function run_gh_test \
     set -l actual_stderr (string replace "$actual_stdout" "" "$actual_stderr")
 
     @test "command status" $actual_status -eq $expected_status
-    @test "command stdout" "$actual_stdout" = $expected_stdout
-    @test "command stderr" "$actual_stderr" = $expected_stderr
+    @test "command stdout" "$actual_stdout" = "$expected_stdout"
+    @test "command stderr" "$actual_stderr" = "$expected_stderr"
 end
 
 function run_successful_test_cases
     set -l mock_repo org/repo
 
     set -l test_descriptions \
+        "gh pr list doesn't return anything" \
         "gh pr view without an argument. gh returns a single row" \
         "gh pr view with an argument. gh returns multiple row" \
         "gh pr view with a R option" \
@@ -30,12 +31,14 @@ function run_successful_test_cases
 
     set -l test_cases \
         "gh pr view " \
+        "gh pr view " \
         "gh pr view 1" \
         "gh pr view -R $mock_repo " \
         "gh pr view --repo $mock_repo 12" \
         "gh pr diff --repo $mock_repo "
 
     set -g mock_gh_results \
+        "" \
         "12    PR TITLE 12 branch12" \
         "12    PR TITLE 12 branch12\n11    PR TITLE 11 branch11" \
         "13    PR TITLE 13 branch13\n12    PR TITLE 12 branch12" \
@@ -45,16 +48,27 @@ function run_successful_test_cases
     set -l expected_gh_commands \
         "pr list" \
         "pr list" \
+        "pr list" \
         "pr list --repo=$mock_repo" \
         "pr list --repo=$mock_repo" \
         "pr list --repo=$mock_repo"
 
     set -l expected_fzf_options \
-        "$FCI_PLUGIN_GH_FZF_FZF_OPTION --preview=gh pr view {1}" \
-        "$FCI_PLUGIN_GH_FZF_FZF_OPTION --preview=gh pr view {1} --query=1" \
-        "$FCI_PLUGIN_GH_FZF_FZF_OPTION --preview=gh pr view {1} --repo=$mock_repo" \
-        "$FCI_PLUGIN_GH_FZF_FZF_OPTION --preview=gh pr view {1} --repo=$mock_repo --query=12" \
-        "$FCI_PLUGIN_GH_FZF_FZF_OPTION --preview=gh pr view {1} --repo=$mock_repo"
+        "fzf shouldn't be used" \
+        "fzf shouldn't be used" \
+        "--preview=gh pr view {1} --query=1 $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+        "--preview=gh pr view {1} --repo=$mock_repo $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+        "--preview=gh pr view {1} --repo=$mock_repo --query=12 $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+        "--preview=gh pr view {1} --repo=$mock_repo $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS"
+
+    set -l expected_stdouts \
+        "" \
+        12 \
+        12 \
+        12 \
+        12 \
+        12 \
+        12
 
     for test_case_index in (seq 1 (count $test_cases))
         # global option is somehow required
@@ -74,7 +88,7 @@ function run_successful_test_cases
         set -g expected_fzf_option $expected_fzf_options[$test_case_index]
         function mock_fzf
             if [ "$expected_fzf_option" != "$argv" ]
-                echo "fzf options: (expected $expected_fzf_options, actual: $argv)" >&2
+                echo "fzf options: (expected $expected_fzf_option, actual: $argv)" >&2
                 return 255
             end
 
@@ -84,7 +98,7 @@ function run_successful_test_cases
 
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status 0
-        set -l expected_stdout 12
+        set -l expected_stdout $expected_stdouts[$test_case_index]
         set -l expected_stderr ""
 
         @echo "Successful test case $test_case_index: $test_descriptions[$test_case_index]"
@@ -96,49 +110,39 @@ function run_error_test_cases
     set -l mock_repo org/repo
 
     set -l test_descriptions \
-        "gh pr list doesn't return anything" \
         "gh pr list returns an error" \
         "fzf was canceled"
 
     set -g mock_gh_command_results \
-        "" \
         "GraphQL: Could not resolve to a Repository with the name 'org/repo'. (repository)" \
         "13 PR TITLE 13 branch13\n12 PR TITLE 12 branch12"
     set -l mock_gh_command_statuses \
-        0 \
         1 \
         0
     set -g expected_gh_commands \
-        "pr list" \
         "pr list" \
         "pr list"
 
     set -g mock_fzf_command_results \
         "isn't used" \
-        "isn't used" \
         ""
     set -g mock_fzf_command_statuses \
-        0 \
         0 \
         130
 
     set -l test_cases \
         "gh pr view " \
-        "gh pr view " \
         "gh pr view "
 
     set -l expected_statuses \
-        1 \
         1 \
         130
 
     set -l expected_stdouts \
         "" \
-        "" \
         ""
 
     set -l expected_stderrs \
-        "" \
         "GraphQL: Could not resolve to a Repository with the name 'org/repo'. (repository)" \
         ""
 

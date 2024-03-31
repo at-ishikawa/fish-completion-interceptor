@@ -25,7 +25,7 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
             break
         end
 
-        commandline -t (echo $result)
+        commandline -t (string join " " -- $result)
         commandline -f repaint
         return 0
     end

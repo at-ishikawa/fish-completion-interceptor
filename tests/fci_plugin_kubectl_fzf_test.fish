@@ -1,5 +1,5 @@
 set __FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI mock_kubectl
-set __FCI_PLUGIN_KUBECTL_FZF_FZF_CLI mock_fzf
+set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 
 function run_kubectl_test \
     -a test_description \
@@ -9,15 +9,17 @@ function run_kubectl_test \
     -a expected_stderr
     set -l commandline_args (string split " " $commandline_arg)
 
-    set -l actual_stdout (fci_plugin_kubectl_fzf $commandline_args 2>/dev/null)
-    set -l actual_stderr (fci_plugin_kubectl_fzf $commandline_args 2>&1)
+    set temp_file (mktemp)
+    set -l actual_stdout (fci_plugin_kubectl_fzf $commandline_args 2>$temp_file)
     set -l actual_status $status
-    set -l actual_stderr (string replace "$actual_stdout" "" "$actual_stderr")
+    set -l actual_stderr (cat $temp_file)
+    rm $temp_file
 
-    @echo "$test_description: $commandline_args"
+    # @echo "$test_description: $commandline_args"
+    # @echo "expected: $expected_stdout, actual: $actual_stdout"
     @test status $actual_status -eq $expected_status
-    @test stdout "$actual_stdout" = $expected_stdout
-    @test stderr "$actual_stderr" = $expected_stderr
+    @test stdout "$actual_stdout" = "$expected_stdout"
+    @test stderr "$actual_stderr" = "$expected_stderr"
 end
 
 @echo == Supported commands
@@ -53,21 +55,21 @@ set expected_kubectl_commands \
     "get pods --namespace=namespace"
 
 
-set default_expected_fzf_option $FCI_PLUGIN_KUBECTL_FZF_FZF_OPTION
+set default_expected_fzf_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS
 
 set expected_fzf_options \
-    "$default_expected_fzf_option -q name --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace" \
-    "$default_expected_fzf_option -q pod2 --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace" \
-    "$default_expected_fzf_option -q name --header-lines 1 --preview=kubectl describe crd {1}" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe deploy {1} --namespace=namespace" \
-    "$default_expected_fzf_option --preview=kubectl describe {1}" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe pods {1}" \
-    "$default_expected_fzf_option -q svc-name --header-lines 1 --preview=kubectl describe svc {1}" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe cm {1}" \
-    "$default_expected_fzf_option --preview=kubectl describe {1}" \
-    "$default_expected_fzf_option --preview=kubectl describe {1}" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe daemonsets {1} --namespace=namespace" \
-    "$default_expected_fzf_option --header-lines 1 --preview=kubectl describe pods {1} --namespace=namespace"
+    "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace --query=name" \
+    "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace --query=pod2" \
+    "--multi --header-lines=1 --preview=kubectl describe crd {1} --query=name" \
+    "--multi --header-lines=1 --preview=kubectl describe deploy {1} --namespace=namespace" \
+    "--multi --preview=kubectl describe {1}" \
+    "--multi --header-lines=1 --preview=kubectl describe pods {1}" \
+    "--multi --header-lines=1 --preview=kubectl describe svc {1} --query=svc-name" \
+    "--multi --header-lines=1 --preview=kubectl describe cm {1}" \
+    "--multi --preview=kubectl describe {1}" \
+    "--multi --preview=kubectl describe {1}" \
+    "--multi --header-lines=1 --preview=kubectl describe daemonsets {1} --namespace=namespace" \
+    "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace"
 
 for i in (seq 1 (count $test_cases))
     set -l test_case $test_cases[$i]
@@ -79,34 +81,31 @@ for i in (seq 1 (count $test_cases))
             return 255
         end
 
-        echo "NAME  READY"
-        echo "pod1  1/1"
-        echo "pod2  1/1"
+        echo "NAME READY"
+        echo "pod1 1/1"
+        echo "pod2 1/1"
         return 0
     end
 
-    set expected_fzf_option $expected_fzf_options[$i]
+    set -g expected_fzf_option $expected_fzf_options[$i] $default_expected_fzf_option
     function mock_fzf
         if [ "$expected_fzf_option" != "$argv" ]
             echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)"
             return 255
         end
-        echo "pod1  1/1"
-        echo "pod2  1/1"
+        echo "pod1 1/1"
+        echo "pod2 1/1"
         return 0
     end
 
-    run_kubectl_test "Support commands" $test_case 0 "pod1 pod2" ""
+    set -l expected_stdout (echo -e "pod1\npod2")
+    run_kubectl_test "Support commands" $test_case 0 "$expected_stdout" ""
 end
 
 
 @echo == Unsupported kubectl commands
 
 function mock_kubectl
-    return 255
-end
-
-function mock_fzf
     return 255
 end
 
@@ -121,29 +120,30 @@ set test_cases \
     "kubectl "
 
 for test_case in $test_cases
-    run_kubectl_test "Unsupported kubectl commands" $test_case 0 "" ""
+    run_kubectl_test "Unsupported kubectl commands" "$test_case" 0 "" ""
 end
 
 @echo === kubectl errors
 
 function mock_kubectl
-    echo "stderr\nstderr\nstderr" >&2
+    echo -e "stderr\nstderr\nstderr" >&2
     return 1
 end
 
 function mock_fzf
-    # Shouldn't be called
+    echo "fzf shouldn't be used"
     return 255
 end
 
-run_kubectl_test "Error when kubectl returns an error status" $successful_command 1 "" "stderr\nstderr\nstderr"
+set -l expected_stderr (echo -e "stderr\nstderr\nstderr")
+run_kubectl_test "Error when kubectl returns an error status" $successful_command 1 "" "$expected_stderr"
 
 function mock_kubectl
     echo "No resource found in mock namespace"
 end
 
 function mock_fzf
-    # Shouldn't be called
+    echo "fzf shouldn't be called" >&2
     return 255
 end
 
@@ -158,14 +158,8 @@ end
 
 function mock_fzf
     echo stderr >&2
-    return 1
+    return 130
 end
 
 # fzf uses stderr for the interactive interrface so the code doesn't capture stderr
-run_kubectl_test "Error when fzf returns an error status" $successful_command 1 "" ""
-
-function mock_fzf
-    echo ""
-end
-
-run_kubectl_test "Error while fzf returns nothing" $successful_command 1 "" ""
+run_kubectl_test "Error when fzf was canceled" $successful_command 130 "" ""
