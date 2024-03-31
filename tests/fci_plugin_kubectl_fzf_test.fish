@@ -1,7 +1,7 @@
 set __FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI mock_kubectl
 set __FCI_PLUGIN_KUBECTL_FZF_FZF_CLI mock_fzf
 
-function run_test \
+function run_kubectl_test \
     -a test_description \
     -a commandline_arg \
     -a expected_status \
@@ -15,9 +15,9 @@ function run_test \
     set -l actual_stderr (string replace "$actual_stdout" "" "$actual_stderr")
 
     @echo "$test_description: $commandline_args"
-    @test "status" $actual_status -eq $expected_status
-    @test "stdout" "$actual_stdout" = $expected_stdout
-    @test "stderr" "$actual_stderr" = $expected_stderr
+    @test status $actual_status -eq $expected_status
+    @test stdout "$actual_stdout" = $expected_stdout
+    @test stderr "$actual_stderr" = $expected_stderr
 end
 
 @echo == Supported commands
@@ -96,7 +96,7 @@ for i in (seq 1 (count $test_cases))
         return 0
     end
 
-    run_test "Support commands" $test_case 0 "pod1 pod2" ""
+    run_kubectl_test "Support commands" $test_case 0 "pod1 pod2" ""
 end
 
 
@@ -121,7 +121,7 @@ set test_cases \
     "kubectl "
 
 for test_case in $test_cases
-    run_test "Unsupported kubectl commands" $test_case 0 "" ""
+    run_kubectl_test "Unsupported kubectl commands" $test_case 0 "" ""
 end
 
 @echo === kubectl errors
@@ -136,7 +136,7 @@ function mock_fzf
     return 255
 end
 
-run_test "Error when kubectl returns an error status" $successful_command 1 "" "stderr\nstderr\nstderr"
+run_kubectl_test "Error when kubectl returns an error status" $successful_command 1 "" "stderr\nstderr\nstderr"
 
 function mock_kubectl
     echo "No resource found in mock namespace"
@@ -147,7 +147,7 @@ function mock_fzf
     return 255
 end
 
-run_test "Error when kubectl doesn't return any resource" $successful_command 1 "" "No resource found in mock namespace"
+run_kubectl_test "Error when kubectl doesn't return any resource" $successful_command 1 "" "No resource found in mock namespace"
 
 @echo === fzf errors
 
@@ -157,15 +157,15 @@ function mock_kubectl
 end
 
 function mock_fzf
-    echo "stderr" >&2
+    echo stderr >&2
     return 1
 end
 
 # fzf uses stderr for the interactive interrface so the code doesn't capture stderr
-run_test "Error when fzf returns an error status" $successful_command 1 "" ""
+run_kubectl_test "Error when fzf returns an error status" $successful_command 1 "" ""
 
 function mock_fzf
     echo ""
 end
 
-run_test "Error while fzf returns nothing" $successful_command 1 "" ""
+run_kubectl_test "Error while fzf returns nothing" $successful_command 1 "" ""

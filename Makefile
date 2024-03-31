@@ -1,3 +1,9 @@
+install:
+	fish -c "fisher install ./"
+
+dependencies:
+	fish -c "fisher install jorgebucaran/fishtape"
+
 generate:
 	fish generate.fish
 
