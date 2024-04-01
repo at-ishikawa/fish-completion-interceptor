@@ -79,7 +79,7 @@ function run_supported_command_test_cases
 
         function mock_gcloud
             if [ "$argv" != "$expected_gcloud_command" ]
-                echo "gh argv: (expected: $expected_gcloud_command, actual: $argv)" >&2
+                echo "gcloud argv: (expected: $expected_gcloud_command, actual: $argv)" >&2
                 return 255
             end
 
