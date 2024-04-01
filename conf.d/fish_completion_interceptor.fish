@@ -1,4 +1,7 @@
-set -U FISH_COMPLETION_INTERCEPTOR_PLUGINS "kubectl=fci_plugin_kubectl_fzf" "gh=fci_plugin_gh_fzf"
+set -U FISH_COMPLETION_INTERCEPTOR_PLUGINS \
+    "kubectl=fci_plugin_kubectl_fzf" \
+    "gh=fci_plugin_gh_fzf" \
+    "gcloud=fci_plugin_gcloud_fzf"
 set -q FISH_COMPLETION_INTERCEPTOR_ENABLED; or set -U FISH_COMPLETION_INTERCEPTOR_ENABLED true
 
 set FISH_COMPLETION_INTERCEPTOR_FZF_KEY_BINDINGS ctrl-k:kill-line,ctrl-alt-t:toggle-preview,ctrl-alt-n:preview-down,ctrl-alt-p:preview-up,ctrl-alt-v:preview-page-down
