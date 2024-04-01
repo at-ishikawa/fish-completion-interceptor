@@ -5,7 +5,8 @@ function fci_run_fzf \
     fzf_query \
     fzf_preview_command \
     fzf_header_lines \
-    fzf_options
+    fzf_options \
+    is_raw_output
 
     set -l candidates ($cli $cli_options 2>&1)
     set -l cli_status $status
@@ -47,6 +48,11 @@ function fci_run_fzf \
     end
 
     # echo -e "$fzf_result" cannot be used for multiple lines
+    if [ -n "$is_raw_output" ]
+        string split "\n" -- $fzf_result
+        return 0
+    end
+
     string split "\n" -- $fzf_result | awk '{ print $1 }' | string trim
     return 0
 end
