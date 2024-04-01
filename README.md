@@ -43,7 +43,7 @@ Note that not all subcommands have been supported.
 
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
 - [GitHub CLI](https://github.com/cli/cli)
-
+- [gcloud](https://cloud.google.com/cli?hl=en)
 
 ## Customize
 

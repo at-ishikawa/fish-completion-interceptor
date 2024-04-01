@@ -1,0 +1,1 @@
+set -g __FCI_PLUGIN_GCLOUD_FZF_GCLOUD_CLI gcloud
