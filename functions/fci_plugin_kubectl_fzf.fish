@@ -70,30 +70,28 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
     set -l query $argv[-1]
 
     set -l kubectl_options
+    set -l fzf_options --multi
+    set -l fzf_preview_command
+    set -l header_lines 1
+
+    if $has_header
+        set fzf_preview_command "kubectl describe $resource {1}"
+    else
+        set kubectl_options $kubectl_options --no-headers=true
+        # if there is no header, it means kubectl runs againts multiple resources or all
+        set header_lines 0
+        set fzf_preview_command "kubectl describe {1}"
+    end
     if [ "$namespace" != "" ]
         set kubectl_options $kubectl_options --namespace=$namespace
-    end
-    if not $has_header
-        set kubectl_options $kubectl_options --no-headers=true
-    end
-
-    set -l fzf_options --multi
-    set -l preview_command
-    if $has_header
-        set fzf_options $fzf_options "--header-lines=1"
-        set preview_command "kubectl describe $resource {1}"
-    else
-        # if there is no header, it means kubectl runs againts multiple resources or all
-        set preview_command "kubectl describe {1}"
-    end
-    if [ "$namespace" != "" ]
-        set preview_command "$preview_command" "--namespace=$namespace"
+        set fzf_preview_command "$fzf_preview_command" "--namespace=$namespace"
     end
 
     fci_run_fzf \
         __fci_plugin_kubectl_fzf_run_kubectl \
         "$resource $kubectl_options" \
         "$query" \
-        "$preview_command" \
+        "$fzf_preview_command" \
+        $header_lines \
         "$fzf_options"
 end

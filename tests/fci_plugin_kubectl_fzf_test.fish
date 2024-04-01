@@ -40,6 +40,20 @@ set test_cases \
     "kubectl edit -n namespace daemonsets " \
     "kubectl -n namespace exec "
 
+set -l mock_kubectl_results \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1" \
+    "NAME READY\npod1 1/1\npod2 1/1"
 set expected_kubectl_commands \
     "get pods --namespace=namespace" \
     "get pods --namespace=namespace" \
@@ -54,8 +68,22 @@ set expected_kubectl_commands \
     "get daemonsets --namespace=namespace" \
     "get pods --namespace=namespace"
 
-
 set default_expected_fzf_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS
+
+set mock_fzf_results \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1" \
+    "pod1 1/1\npod2 1/1"
 
 set expected_fzf_options \
     "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace --query=name" \
@@ -71,34 +99,47 @@ set expected_fzf_options \
     "--multi --header-lines=1 --preview=kubectl describe daemonsets {1} --namespace=namespace" \
     "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace"
 
+set -l expected_stdouts \
+    "pod1\npod2" \
+    pod1 \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    pod1 \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    "pod1\npod2" \
+    "pod1\npod2"
+
 for i in (seq 1 (count $test_cases))
     set -l test_case $test_cases[$i]
     set expected_kubectl_command $expected_kubectl_commands[$i]
 
+    set -g mock_kubectl_result $mock_kubectl_results[$i]
     function mock_kubectl
         if [ "$expected_kubectl_command" != "$argv" ]
             echo "kubectl argv: (expected: $expected_kubectl_command, actual: $argv)" >&2
             return 255
         end
 
-        echo "NAME READY"
-        echo "pod1 1/1"
-        echo "pod2 1/1"
+        echo -e "$mock_kubectl_result"
         return 0
     end
 
     set -g expected_fzf_option $expected_fzf_options[$i] $default_expected_fzf_option
+    set -g mock_fzf_result $mock_fzf_results[$i]
     function mock_fzf
         if [ "$expected_fzf_option" != "$argv" ]
             echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)"
             return 255
         end
-        echo "pod1 1/1"
-        echo "pod2 1/1"
+        echo -e "$mock_fzf_result"
         return 0
     end
 
-    set -l expected_stdout (echo -e "pod1\npod2")
+    set -l expected_stdout (echo -e "$expected_stdouts[$i]")
     run_kubectl_test "Support commands" $test_case 0 "$expected_stdout" ""
 end
 
