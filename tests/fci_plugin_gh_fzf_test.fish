@@ -54,8 +54,8 @@ function run_successful_test_cases
         "pr list --repo=$mock_repo"
 
     set -l expected_fzf_options \
-        "fzf shouldn't be used" \
-        "fzf shouldn't be used" \
+        "--preview=gh pr view {1} $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+        "--preview=gh pr view {1} $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
         "--preview=gh pr view {1} --query=1 $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
         "--preview=gh pr view {1} --repo=$mock_repo $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
         "--preview=gh pr view {1} --repo=$mock_repo --query=12 $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \

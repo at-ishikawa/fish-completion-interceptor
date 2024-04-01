@@ -1,8 +1,3 @@
-function __fci_plugin_gh_fzf_run_gh
-    $__FCI_PLUGIN_GHL_FZF_GH_CLI pr list
-    return $status
-end
-
 function __fci_plugin_gh_fzf_gh_pr_cli \
     --description "" \
     --argument-names cli_options
@@ -33,7 +28,8 @@ function __fci_plugin_gh_fzf_pr_list -d "The list of PRs" \
         __fci_plugin_gh_fzf_gh_pr_cli \
         "$cli_options" \
         "$fzf_query" \
-        "$fzf_preview_command"
+        "$fzf_preview_command" \
+        0 # No fzf_options
 
     return $status
 end
