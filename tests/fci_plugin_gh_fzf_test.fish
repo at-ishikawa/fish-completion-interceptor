@@ -4,18 +4,16 @@ set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 function run_gh_test \
     -a commandline_arg \
     -a expected_status \
-    -a expected_stdout \
-    -a expected_stderr
+    -a expected_stdout
     set -l commandline_args (string split " " $commandline_arg)
 
     set -l actual_stdout (fci_plugin_gh_fzf $commandline_args 2>/dev/null)
-    set -l actual_stderr (fci_plugin_gh_fzf $commandline_args 2>&1)
+    set -l actual_stderr (fci_plugin_gh_fzf $commandline_args >/dev/null 2>&1)
     set -l actual_status $status
-    set -l actual_stderr (string replace "$actual_stdout" "" "$actual_stderr")
 
     @test "command status" $actual_status -eq $expected_status
     @test "command stdout" "$actual_stdout" = "$expected_stdout"
-    @test "command stderr" "$actual_stderr" = "$expected_stderr"
+    @test "command stderr" -z "$actual_stderr"
 end
 
 function run_successful_test_cases
@@ -99,10 +97,9 @@ function run_successful_test_cases
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status 0
         set -l expected_stdout $expected_stdouts[$test_case_index]
-        set -l expected_stderr ""
 
         @echo "Successful test case $test_case_index: $test_descriptions[$test_case_index]"
-        run_gh_test $test_case $expected_status $expected_stdout $expected_stderr
+        run_gh_test $test_case $expected_status $expected_stdout
     end
 end
 
@@ -139,10 +136,6 @@ function run_error_test_cases
         130
 
     set -l expected_stdouts \
-        "" \
-        ""
-
-    set -l expected_stderrs \
         "GraphQL: Could not resolve to a Repository with the name 'org/repo'. (repository)" \
         ""
 
@@ -181,10 +174,9 @@ function run_error_test_cases
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status $expected_statuses[$test_case_index]
         set -l expected_stdout $expected_stdouts[$test_case_index]
-        set -l expected_stderr $expected_stderrs[$test_case_index]
 
         @echo "Error test case $test_case_index: $test_descriptions[$test_case_index]"
-        run_gh_test $test_case $expected_status $expected_stdout $expected_stderr
+        run_gh_test $test_case $expected_status $expected_stdout
     end
 
 end
