@@ -13,17 +13,10 @@ function __fci_plugin_1password_cli \
     end
     set -a cli_options --format=json
 
-    set -l jq_expression "[.id, .title]"
-    set -l jq_header '["id", "title"]'
-    if [ "$group" = vault ]; or [ "$group" = vaults ]
-        set jq_expression "[.id, .name]"
-        set jq_header '["id", "name"]'
-    end
-
-    set -l result ($__FCI_PLUGIN_1PASSWORD_FZF_1PASSWORD_CLI $group list $cli_options 2>| read -z stderr_output | jq -r "$jq_header, (.[] | $jq_expression) | @tsv")
+    set -l result ($__FCI_PLUGIN_1PASSWORD_FZF_1PASSWORD_CLI $group list $cli_options 2>&1)
     set -l cli_status $pipestatus[1]
     if [ $cli_status -ne 0 ]
-        echo -n -e "$stderr_output" >&2
+        echo -n -e "$result"
         return $cli_status
     end
     if [ -z "$result" ]
@@ -34,11 +27,10 @@ function __fci_plugin_1password_cli \
     return 0
 end
 
-
 function __fci_plugin_1password_fzf_list \
     --argument-names group
-    argparse "account=?" "vault=?" "query=?" -- $argv; or return 1
 
+    argparse "account=?" "vault=?" "query=?" -- $argv; or return 1
     set -l account "$_flag_account"
     set -l vault "$_flag_vault"
     set -l fzf_query "$_flag_query"
@@ -50,17 +42,30 @@ function __fci_plugin_1password_fzf_list \
         set fzf_preview_command "$fzf_preview_command --vault=$vault"
     end
 
-    # __fci_plugin_1password_cli $group list $cli_options | __fci_fzf $fzf_options | cut -f 2- -d ' ' | string trim | awk '{ printf "\"%s\"\n", $0 }'
-    set -l selections (__fci_plugin_1password_cli "$group" "--vault=$vault" "--account=$account" |
-        __fci_fzf "--header-lines=1" "--preview=$fzf_preview_command" "--query=$fzf_query")
-    for st in $pipestatus
-        if [ $st -ne 0 ]
-            return $st
-        end
+    set -l cli_result (__fci_plugin_1password_cli "$group" "--vault=$vault" "--account=$account")
+    set -l cli_status $status
+    if [ $cli_status -ne 0 ]
+        echo -e -n "$cli_result"
+        return $cli_status
+    end
+    if [ -z "$cli_result" ]
+        return 1
     end
 
-    string split "\n" -- $selections | cut -f 2- | string trim | awk '{ printf "\"%s\"\n", $0 }'
-    return 0
+    set -l jq_expression "[.id, .title]"
+    set -l jq_header '["id", "title"]'
+    if [ "$group" = vault ]; or [ "$group" = vaults ]
+        set jq_expression "[.id, .name]"
+        set jq_header '["id", "name"]'
+    end
+
+    echo "$cli_result" |
+        jq -r "$jq_header, (.[] | $jq_expression) | @tsv" |
+        __fci_fzf "--header-lines=1" "--preview=$fzf_preview_command" "--query=$fzf_query" |
+        cut -f 2- |
+        string trim |
+        awk '{ if ($0) printf "\"%s\"\n", $0 }'
+    return $pipestatus[3]
 end
 
 function fci_plugin_op_fzf \
