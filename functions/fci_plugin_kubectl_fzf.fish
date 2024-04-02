@@ -60,7 +60,35 @@ function __fci_plugin_kubectl_fzf \
     return $pipestatus[2] # fzf status
 end
 
-function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to run kubectl fzf"
+function __fci_plugin_kubectl_fzf_namespace_mode \
+    --argument-names commandline_args
+    set -l args (string split " " -- $commandline_args)
+
+    if string match --quiet --regex -- "^(-n|--namespace)=?(?<namespace>.*)" "$args[-1]"
+        echo "$namespace"
+        return 0
+    end
+    if string match --quiet --regex -- "^(-n|--namespace)" "$args[-2]"
+        echo "$args[-1]"
+        return 0
+    end
+
+    return 1
+end
+
+function fci_plugin_kubectl_fzf \
+    --description "The plugin of fish-completion-interceptor to run kubectl fzf"
+
+    if [ (count $argv) -lt 2 ]
+        return 0
+    end
+
+    set -l namespace_query (__fci_plugin_kubectl_fzf_namespace_mode "$argv")
+    if [ $status -eq 0 ]
+        __fci_plugin_kubectl_fzf namespace "--query=$namespace_query"
+        return $status
+    end
+
     argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_global_options -- $argv
     set -l namespace "$_flag_namespace"
 
@@ -99,10 +127,10 @@ function fci_plugin_kubectl_fzf -d "The plugin of fish-completion-interceptor to
             return 0
     end
 
-    string match -q "*,*" "$resource"; or [ "$resource" = all ]
     if [ "$resource" = "" ]; or [ "$resource" = "$argv[-1]" ]
         return 0
     end
+
     set -l query $argv[-1]
 
     __fci_plugin_kubectl_fzf "$resource" "--namespace=$namespace" "--query=$query"
