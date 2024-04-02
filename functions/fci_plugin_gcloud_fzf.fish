@@ -1,15 +1,30 @@
-function __fci_plugin_gcloud_fzf_gcloud_cli
-    set -l args (string trim -- $argv | string split " " | string trim)
-    set -l result ($__FCI_PLUGIN_GCLOUD_FZF_GCLOUD_CLI $args 2>&1)
-    set -l cli_status $status
+__fci_functions
 
+function __fci_plugin_gcloud_fzf_gcloud_cli --argument-names groups
+
+    argparse "project=?" "regions=?" "zones=?" "query=?" -- $argv
+    set -l options
+    if [ -n "$_flag_project" ]
+        set -a options "--project=$_flag_project"
+    end
+    set -l regions (string trim "$_flag_regions")
+    if [ -n "$regions" ]
+        set -a options --regions=$regions
+    end
+    set -l zones (string trim "$_flag_zones")
+    if [ -n "$zones" ]
+        set -a options --zones=$zones
+    end
+
+    set -l result ($__FCI_PLUGIN_GCLOUD_FZF_GCLOUD_CLI (string split " " -- $groups) list $options 2>&1)
+    set -l cli_status $status
     if [ $cli_status -ne 0 ]
-        echo -n -e "$result" >&2
+        echo -n -e "$result"
         return $cli_status
     end
     # Assumes an error if there is no resource by gcloud
     if [ (string split "\n" -- $result | wc -l) -lt 2 ]
-        echo -e "$result" >&2
+        echo -n -e "$result"
         return 1
     end
 
@@ -18,37 +33,26 @@ function __fci_plugin_gcloud_fzf_gcloud_cli
 end
 
 function __fci_plugin_gcloud_fzf_list -d "The list of group" \
-    -a groups \
-    project \
-    regions \
-    zones \
-    fzf_query
+    --argument-names groups
 
-    set -l cli_options $groups
-    set -a cli_options list
+    argparse "project=?" "regions=?" "zones=?" "query=?" -- $argv
     set -l fzf_preview_command "gcloud $groups describe --zone={2} {1}"
+    set -l project $_flag_project
     if [ -n "$project" ]
-        set -a cli_options --project=$project
         set -a fzf_preview_command "--project=$project"
     end
-    set regions (string trim -- $regions)
-    if [ -n "$regions" ]
-        set -a cli_options --regions=$regions
-    end
-    set zones (string trim -- $zones)
-    if [ -n "$zones" ]
-        set -a cli_options --zones=$zones
+
+    set -l cli_result (__fci_plugin_gcloud_fzf_gcloud_cli $groups "--project=$project" "--regions=$_flag_regions" "--zones=$_flag_zones")
+    set -l cli_status $status
+    if [ $cli_status -ne 0 ]
+        echo -e -n "$cli_result"
+        return $cli_status
     end
 
-    fci_run_fzf \
-        __fci_plugin_gcloud_fzf_gcloud_cli \
-        "$cli_options" \
-        "$fzf_query" \
-        "$fzf_preview_command" \
-        1 \
-        --multi
-
-    return $status
+    string split "\n" -- $cli_result |
+        __fci_fzf --multi "--query=$_flag_query" "--preview=$fzf_preview_command" "--header-lines=1" |
+        awk '{ print $1 }'
+    return $pipestatus[2]
 end
 
 function fci_plugin_gcloud_fzf \
@@ -90,10 +94,10 @@ function fci_plugin_gcloud_fzf \
 
             __fci_plugin_gcloud_fzf_list \
                 "$group $sub_group" \
-                "$project" \
-                "$regions" \
-                "$zones" \
-                "$query"
+                "--project=$project" \
+                "--regions=$regions" \
+                "--zones=$zones" \
+                "--query=$query"
             return $status
     end
 
