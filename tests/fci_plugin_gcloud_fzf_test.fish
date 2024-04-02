@@ -4,8 +4,8 @@ set -g FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 function run_gcloud_test \
     -a commandline_arg \
     -a expected_status \
-    -a expected_stdout \
-    -a expected_stderr
+    -a expected_stdout
+
     set -l commandline_args (string split " " $commandline_arg)
 
     set temp_file (mktemp)
@@ -16,7 +16,7 @@ function run_gcloud_test \
 
     @test status $actual_status -eq $expected_status
     @test stdout "$actual_stdout" = "$expected_stdout"
-    @test stderr "$actual_stderr" = "$expected_stderr"
+    @test stderr -z "$actual_stderr"
 end
 
 function run_supported_command_test_cases
@@ -62,15 +62,10 @@ function run_supported_command_test_cases
         0 \
         0
     set -l expected_stdouts \
-        "" \
+        "Listed 0 items." \
         instance-1 \
         "instance-2\ninstance-3" \
         "disk-1\ndisk-2"
-    set -l expected_stderrs \
-        "Listed 0 items." \
-        "" \
-        "" \
-        ""
 
     for test_case_index in (seq 1 (count $test_cases))
         # global option is somehow required
@@ -102,11 +97,36 @@ function run_supported_command_test_cases
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status $expected_statuses[$test_case_index]
         set -l expected_stdout (echo -e "$expected_stdouts[$test_case_index]")
-        set -l expected_stderr $expected_stderrs[$test_case_index]
 
         @echo "Supported command: $test_case_index: $test_descriptions[$test_case_index]"
-        run_gcloud_test "$test_case" $expected_status "$expected_stdout" "$expected_stderr"
+        run_gcloud_test "$test_case" $expected_status "$expected_stdout"
     end
 end
 
+@echo == Supported commands
 run_supported_command_test_cases
+
+@echo == Error cases
+
+function mock_gcloud
+    echo -e "stderr\nstderr\nstderr" >&2
+    return 1
+end
+function mock_fzf
+    echo "fzf shouldn't be used"
+    return 255
+end
+
+@echo "Error case: Error when gcloud returns an error status"
+set -l expected_stdout (echo -e "stderr\nstderr\nstderr")
+run_gcloud_test "gcloud compute instances describe " 1 "$expected_stdout" ""
+
+function mock_gcloud
+    echo -e "NAME ZONE STATUS\ninstance-1 us-central1-a STAGING"
+end
+function mock_fzf
+    return 130
+end
+
+@echo "Error case: Error when fzf was canceled"
+run_gcloud_test "gcloud compute instances describe " 130 "" ""
