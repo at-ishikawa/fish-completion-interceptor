@@ -4,8 +4,7 @@ set -g FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 function run_1password_test \
     -a commandline_arg \
     -a expected_status \
-    -a expected_stdout \
-    -a expected_stderr
+    -a expected_stdout
 
     set -l commandline_args (string split " " $commandline_arg)
 
@@ -19,7 +18,7 @@ function run_1password_test \
     # @echo "actual_stderr: $actual_stderr, expected_stderr: $expected_stderr"
     @test status $actual_status -eq $expected_status
     @test stdout "$actual_stdout" = "$expected_stdout"
-    @test stderr "$actual_stderr" = "$expected_stderr"
+    @test stderr -z "$actual_stderr"
 end
 
 function run_supported_command_test_cases
@@ -71,11 +70,6 @@ function run_supported_command_test_cases
         '"Item 11"' \
         '"Vault 11"\n"Vault 12"' \
         '"Item 11"\n"Item 12"'
-    set -l expected_stderrs \
-        "" \
-        "" \
-        "" \
-        ""
 
     for test_case_index in (seq 1 (count $test_cases))
         # global option is somehow required
@@ -107,10 +101,9 @@ function run_supported_command_test_cases
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status $expected_statuses[$test_case_index]
         set -l expected_stdout (echo -e "$expected_stdouts[$test_case_index]")
-        set -l expected_stderr $expected_stderrs[$test_case_index]
 
         @echo "Supported command: $test_case_index: $test_descriptions[$test_case_index]"
-        run_1password_test "$test_case" $expected_status "$expected_stdout" "$expected_stderr"
+        run_1password_test "$test_case" $expected_status "$expected_stdout"
     end
 end
 
@@ -145,12 +138,8 @@ function run_error_test_cases
         1 \
         130
     set -l expected_stdouts \
-        "" \
+        "[ERROR] 2024/04/01 21:22:29 You are not currently signed in. Please run `op signin --help` for instructions" \
         ''
-    set -l expected_stderrs \
-        # The first case outputs "[ERROR] 2024/04/01 21:22:29 You are not currently signed in. Please run `op signin --help` for instructions" but doesn't capture on stderr \
-        "" \
-        ""
 
     for test_case_index in (seq 1 (count $test_cases))
         # global option is somehow required
@@ -180,10 +169,9 @@ function run_error_test_cases
         set -l test_case $test_cases[$test_case_index]
         set -l expected_status $expected_statuses[$test_case_index]
         set -l expected_stdout (echo -e "$expected_stdouts[$test_case_index]")
-        set -l expected_stderr $expected_stderrs[$test_case_index]
 
         @echo "Error cases: $test_case_index: $test_descriptions[$test_case_index]"
-        run_1password_test "$test_case" $expected_status "$expected_stdout" "$expected_stderr"
+        run_1password_test "$test_case" $expected_status "$expected_stdout"
     end
 end
 
