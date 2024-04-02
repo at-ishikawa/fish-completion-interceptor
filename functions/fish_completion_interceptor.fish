@@ -13,13 +13,11 @@ function fish_completion_interceptor -d "Intercept to run some commands during c
         end
 
         # Dynamically call a function
-        set -l result (eval "$functionName" $args $lastArg 2>| read -z stderr_output)
-        set -l function_status $pipestatus[1]
+        set -l result (eval "$functionName" $args $lastArg)
+        set -l function_status $status
         if [ $function_status -ne 0 ]
-            if [ -n "$stderr_output" ]
-                echo >&2
-                echo -e "$stderr_output" >&2
-            end
+            echo >&2
+            echo -e "$result" >&2
             commandline -f repaint
             return $function_status
         end

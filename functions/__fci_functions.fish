@@ -1,4 +1,6 @@
-function __fci_functions
+function __fci_functions \
+    --description "Declare functions not exposed publicly"
+
     # fzf during the pipe doesn't work even with a redirection of stdout to stderr and stderr to stdout
     function __fci_fzf
         argparse multi "header-lines=?" "preview=?" "query=?" -- $argv
@@ -6,7 +8,7 @@ function __fci_functions
         if set -ql _flag_multi
             set -a fzf_options --multi
         end
-        if [ -n "$_flag_header_lines" ]
+        if [ -n "$_flag_header_lines" ]; and [ $_flag_header_lines -gt 0 ]
             set -a fzf_options "--header-lines=$_flag_header_lines"
         end
         if [ -n "$_flag_preview" ]

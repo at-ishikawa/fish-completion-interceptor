@@ -2,11 +2,11 @@ set __FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI mock_kubectl
 set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 
 function run_kubectl_test \
-    -a test_description \
-    -a commandline_arg \
-    -a expected_status \
-    -a expected_stdout \
-    -a expected_stderr
+    --argument-names test_description \
+    commandline_arg \
+    expected_status \
+    expected_stdout \
+    expected_stderr
     set -l commandline_args (string split " " $commandline_arg)
 
     set temp_file (mktemp)
@@ -15,7 +15,7 @@ function run_kubectl_test \
     set -l actual_stderr (cat $temp_file)
     rm $temp_file
 
-    # @echo "$test_description: $commandline_args"
+    @echo "$test_description: $commandline_args"
     # @echo "expected: $expected_stdout, actual: $actual_stdout"
     @test status $actual_status -eq $expected_status
     @test stdout "$actual_stdout" = "$expected_stdout"
@@ -84,7 +84,6 @@ set mock_fzf_results \
     "pod1 1/1\npod2 1/1" \
     "pod1 1/1\npod2 1/1" \
     "pod1 1/1\npod2 1/1"
-
 set expected_fzf_options \
     "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace --query=name" \
     "--multi --header-lines=1 --preview=kubectl describe pods {1} --namespace=namespace --query=pod2" \
@@ -128,11 +127,11 @@ for i in (seq 1 (count $test_cases))
         return 0
     end
 
-    set -g expected_fzf_option $expected_fzf_options[$i] $default_expected_fzf_option
+    set -g expected_fzf_option "$expected_fzf_options[$i] $default_expected_fzf_option"
     set -g mock_fzf_result $mock_fzf_results[$i]
     function mock_fzf
         if [ "$expected_fzf_option" != "$argv" ]
-            echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)"
+            echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)" >&2
             return 255
         end
         echo -e "$mock_fzf_result"
@@ -176,8 +175,8 @@ function mock_fzf
     return 255
 end
 
-set -l expected_stderr (echo -e "stderr\nstderr\nstderr")
-run_kubectl_test "Error when kubectl returns an error status" $successful_command 1 "" "$expected_stderr"
+set -l expected_stdout (echo -e "stderr\nstderr\nstderr")
+run_kubectl_test "Error when kubectl returns an error status" $successful_command 1 "$expected_stdout" ""
 
 function mock_kubectl
     echo "No resource found in mock namespace"
@@ -188,7 +187,7 @@ function mock_fzf
     return 255
 end
 
-run_kubectl_test "Error when kubectl doesn't return any resource" $successful_command 1 "" "No resource found in mock namespace"
+run_kubectl_test "Error when kubectl doesn't return any resource" $successful_command 1 "No resource found in mock namespace" ""
 
 @echo === fzf errors
 
@@ -198,7 +197,6 @@ function mock_kubectl
 end
 
 function mock_fzf
-    echo stderr >&2
     return 130
 end
 
