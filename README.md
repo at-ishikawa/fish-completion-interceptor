@@ -8,6 +8,10 @@ The next demo shows for the usage of `kubectl get pods` with fzf for a completio
 
 ![Demo](./docs/videos/kubectl_demo.gif)
 
+## Requirements
+
+- [`fzf`](https://github.com/junegunn/fzf) (Verifieid with a version >= `0.54`)
+
 ## Install
 
 Install this plugin using a [fisher](https://github.com/jorgebucaran/fisher).
