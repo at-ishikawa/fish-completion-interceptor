@@ -1,4 +1,5 @@
 set __FCI_PLUGIN_GH_FZF_GH_CLI mock_gh
+set __FCI_PLUGIN_GH_FZF_DEFAULT_ORG test-org
 set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 
 function run_gh_test \
@@ -111,8 +112,8 @@ function run_gh_repo_test_cases
             "--bind=change:reload($command)"
 
         set -l expected_fzf_options \
-            "$option --preview=gh repo view {1} $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh repo view {1} --query=branch $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/ $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/branch $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
             "$option --preview=gh repo view {1} --query=org/r $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
             "$option --preview=gh repo view {1} --query=org/repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS"
 

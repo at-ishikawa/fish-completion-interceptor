@@ -28,6 +28,10 @@ function __fci_plugin_gh_fzf_repo_list
 
     argparse "query=?" -- $argv
 
+    if not string match -q "*/*" "$_flag_query"
+        set _flag_query "$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/$_flag_query"
+    end
+
     set -l fzf_preview_command "gh repo view {1}"
 
     # https://github.com/junegunn/fzf?tab=readme-ov-file#2-switch-between-sources-by-pressing-ctrl-d-or-ctrl-f
