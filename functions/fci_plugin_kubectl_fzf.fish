@@ -1,63 +1,59 @@
 __fci_functions
 
-function __fci_plugin_kubectl_fzf_run_kubectl \
-    --description "Run kubectl and handle an error"
-    set -l result ($__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get $argv 2>&1)
-    set -l cli_status $status
-
-    if [ $cli_status -ne 0 ]
-        echo -n -e "$result"
-        return $cli_status
-    end
-    # Assumes an error if there is no resource by kubectl
-    if [ (string split "\n" -- $result | wc -l) -lt 2 ]
-        echo -n -e "$result"
-        return 1
-    end
-
-    string split "\n" -- $result
-    return 0
-end
-
 function __fci_plugin_kubectl_fzf \
     --argument-names resource
     argparse "namespace=?" "query=?" -- $argv; or return 1
 
     set -l has_header true
+    set -l is_pod false
     if string match -q "*,*" "$resource"; or [ "$resource" = all ]
         set has_header false
+    else if contains "$resource" pod pods
+        set is_pod true
     end
 
     set -l kubectl_options
-    set -l fzf_preview_command
+    set -l fzf_kubectl_describe_preview_command
+    set -l fzf_kubectl_log_preview_command "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI logs --follow {1}"
     set -l header_lines 1
 
     if $has_header
-        set fzf_preview_command "kubectl describe $resource {1}"
+        set fzf_kubectl_describe_preview_command "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe $resource {1}"
     else
         set kubectl_options $kubectl_options --no-headers=true
         # if there is no header, it means kubectl runs againts multiple resources or all
         set header_lines 0
-        set fzf_preview_command "kubectl describe {1}"
+        set fzf_kubectl_describe_preview_command "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe {1}"
     end
+
     set -l namespace $_flag_namespace
     if [ "$namespace" != "" ]
         set kubectl_options $kubectl_options --namespace=$namespace
-        set fzf_preview_command "$fzf_preview_command" "--namespace=$namespace"
+        set fzf_kubectl_describe_preview_command "$fzf_kubectl_describe_preview_command" "--namespace=$namespace"
+        set fzf_kubectl_log_preview_command "$fzf_kubectl_log_preview_command" "--namespace=$namespace"
     end
 
-    set -l cli_result (__fci_plugin_kubectl_fzf_run_kubectl $resource $kubectl_options)
-    set -l cli_status $status
-    if [ $cli_status -ne 0 ]
-        echo -e -n "$cli_result"
-        return $cli_status
+    set -l kubectl_list_command (echo "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get $resource $kubectl_options" | string trim)
+    set -l fzf_options --multi \
+        "--preview=$fzf_kubectl_describe_preview_command" \
+        "--query=$_flag_query" \
+        "--header-lines=$header_lines" \
+        "--bind=ctrl-r:reload($kubectl_list_command)"
+    if $is_pod
+        # Change a preview and run tail a log
+        # https://github.com/junegunn/fzf/blob/4e85f72f0ee237bef7a1617e0cf8c811a4091d72/ADVANCED.md#log-tailing
+        set -a fzf_options "--header=Ctrl-l: kubectl logs / Ctrl-d: kubectl describe / Ctrl-r: Reload" \
+            "--bind=ctrl-l:change-preview($fzf_kubectl_log_preview_command)+change-preview-window(follow)" \
+            "--bind=ctrl-d:change-preview($fzf_kubectl_describe_preview_command)+change-preview-window(nofollow)"
+    else
+        set -a fzf_options "--header=Ctrl-r: Reload"
     end
 
-    string split "\n" -- $cli_result |
-        __fci_fzf --multi "--preview=$fzf_preview_command" "--query=$_flag_query" "--header-lines=$header_lines" |
+    FZF_DEFAULT_COMMAND="$kubectl_list_command" \
+        __fci_fzf $fzf_options |
         awk '{ print $1 }' |
         string trim
-    return $pipestatus[2] # fzf status
+    return $pipestatus[1] # fzf status
 end
 
 function __fci_plugin_kubectl_fzf_namespace_mode \

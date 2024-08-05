@@ -10,6 +10,7 @@ function __fci_functions \
             "query=?" \
             "bind=+" \
             "prompt=?" \
+            "preview-window=?" \
             -- $argv
         set -l fzf_options
         if set -ql _flag_multi
@@ -26,6 +27,9 @@ function __fci_functions \
         end
         if [ -n "$_flag_preview" ]
             set -a fzf_options "--preview=$_flag_preview"
+        end
+        if [ -n "$_flag_preview_window" ]
+            set -a fzf_options "--preview-window=$_flag_preview_window"
         end
         if [ -n "$_flag_query" ]
             set -a fzf_options "--query=$_flag_query"
