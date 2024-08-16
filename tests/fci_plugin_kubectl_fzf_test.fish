@@ -41,7 +41,8 @@ function test_fci_plugin_kubectl_fzf
         "kubectl get cm --output yaml " \
         "kubectl get ingress,svc " \
         "kubectl get all " \
-        "kubectl edit -n namespace daemonsets "
+        "kubectl edit -n namespace daemonsets " \
+        "kubectl view-secret "
     set -l mock_kubectl_results \
         # Pods
         "NAME READY\npod1 1/1\npod2 1/1" \
@@ -57,7 +58,8 @@ function test_fci_plugin_kubectl_fzf
         "NAME READY\npod1 1/1\npod2 1/1" \
         "NAME READY\npod1 1/1\npod2 1/1" \
         "NAME READY\npod1 1/1\npod2 1/1" \
-        "NAME READY\npod1 1/1\npod2 1/1"
+        "NAME READY\npod1 1/1\npod2 1/1" \
+        "NAME READY\nsecret1 1/1\nsecret2 1/1"
 
     set -l default_expected_fzf_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS
 
@@ -76,7 +78,8 @@ function test_fci_plugin_kubectl_fzf
         "pod1 1/1\npod2 1/1" \
         "pod1 1/1\npod2 1/1" \
         "pod1 1/1\npod2 1/1" \
-        "pod1 1/1\npod2 1/1"
+        "pod1 1/1\npod2 1/1" \
+        "secret1 1/1\nsecret2 1/1"
 
     function kubectl_describe -a resource
         argparse "namespace=?" -- $argv
@@ -148,7 +151,11 @@ function test_fci_plugin_kubectl_fzf
         (printf $default_fzf_option_format \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe daemonsets {1} --namespace=namespace" \
             "" \
-            "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get daemonsets --namespace=namespace")
+            "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get daemonsets --namespace=namespace") \
+        (printf $default_fzf_option_format \
+            "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe secrets {1}" \
+            "" \
+            "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get secrets")
 
     set -l expected_stdouts \
         # Pods
@@ -164,7 +171,9 @@ function test_fci_plugin_kubectl_fzf
         "pod1\npod2" \
         "pod1\npod2" \
         "pod1\npod2" \
-        "pod1\npod2"
+        "pod1\npod2" \
+        "pod1\npod2" \
+        "secret1\nsecret2"
 
     for i in (seq 1 (count $test_cases))
         set -l test_case $test_cases[$i]

@@ -119,6 +119,8 @@ function fci_plugin_kubectl_fzf \
             argparse --ignore-unknown $__fci_plugin_kubectl_fzf_kubectl_delete_options -- $argv
             set resource $argv[3]
             # TODO support for other subcommands like rollout
+        case view-secret
+            set resource secrets
         case '*'
             return 0
     end
