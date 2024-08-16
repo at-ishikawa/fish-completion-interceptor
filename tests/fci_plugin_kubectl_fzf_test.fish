@@ -92,60 +92,60 @@ function test_fci_plugin_kubectl_fzf
     set -l multi_namespace_fzf_option_format "--multi --header=Ctrl-r: Reload --preview=%s %s--bind=ctrl-r:reload(%s)"
     set -l expected_fzf_options \
         # Pods
-        (printf -- $pod_fzf_option_format \
+        (printf $pod_fzf_option_format \
             (kubectl_describe pods --namespace=namespace) \
             "--query=name " \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get pods --namespace=namespace" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI logs --follow {1} --namespace=namespace" \
             (kubectl_describe pods --namespace=namespace)) \
-        (printf -- $pod_fzf_option_format \
+        (printf $pod_fzf_option_format \
             (kubectl_describe pods --namespace=namespace) \
             "--query=pod2 " \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get pods --namespace=namespace" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI logs --follow {1} --namespace=namespace" \
             (kubectl_describe pods --namespace=namespace)) \
-        (printf -- $pod_fzf_option_format \
+        (printf $pod_fzf_option_format \
             (kubectl_describe pods) \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get pods" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI logs --follow {1}" \
             (kubectl_describe pods)) \
-        (printf -- $pod_fzf_option_format \
+        (printf $pod_fzf_option_format \
             (kubectl_describe pods --namespace=namespace) \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get pods --namespace=namespace" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI logs --follow {1} --namespace=namespace" \
             (kubectl_describe pods --namespace=namespace)) \
         # Non Pods
-        (printf -- $default_fzf_option_format \
+        (printf $default_fzf_option_format \
             (kubectl_describe crd) \
             "--query=name " \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get crd") \
-        (printf -- $default_fzf_option_format \
+        (printf $default_fzf_option_format \
             (kubectl_describe deploy --namespace=namespace) \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get deploy --namespace=namespace") \
-        (printf -- $multi_namespace_fzf_option_format \
+        (printf $multi_namespace_fzf_option_format \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe {1}" \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get pods,services --no-headers=true") \
-        (printf -- $default_fzf_option_format \
+        (printf $default_fzf_option_format \
             (kubectl_describe svc) \
             "--query=svc-name " \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get svc") \
-        (printf -- $default_fzf_option_format \
+        (printf $default_fzf_option_format \
             (kubectl_describe cm) \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get cm") \
-        (printf -- $multi_namespace_fzf_option_format \
+        (printf $multi_namespace_fzf_option_format \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe {1}" \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get ingress,svc --no-headers=true") \
-        (printf -- $multi_namespace_fzf_option_format \
+        (printf $multi_namespace_fzf_option_format \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe {1}" \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get all --no-headers=true") \
-        (printf -- $default_fzf_option_format \
+        (printf $default_fzf_option_format \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI describe daemonsets {1} --namespace=namespace" \
             "" \
             "$__FCI_PLUGIN_KUBECTL_FZF_KUBECTL_CLI get daemonsets --namespace=namespace")
@@ -169,8 +169,6 @@ function test_fci_plugin_kubectl_fzf
     for i in (seq 1 (count $test_cases))
         set -l test_case $test_cases[$i]
 
-        set expected_kubectl_command $expected_kubectl_commands[$i]
-
         set expected_fzf_option "$expected_fzf_options[$i] $default_expected_fzf_option"
         set mock_fzf_result $mock_fzf_results[$i]
         function mock_fzf \
@@ -178,7 +176,8 @@ function test_fci_plugin_kubectl_fzf
             --inherit-variable mock_fzf_result
 
             if [ "$expected_fzf_option" != "$argv" ]
-                echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)" >&2
+                echo "fzf argv diff: $(diff (echo $argv | string split ' ' | psub) (echo $expected_fzf_option | string split ' ' | psub))" >&2
+                # echo "fzf argv: (expected: $expected_fzf_option, actual: $argv)" >&2
                 return 255
             end
             echo -e "$mock_fzf_result"
