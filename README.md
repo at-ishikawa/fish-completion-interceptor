@@ -42,13 +42,16 @@ There are some variables that can be defined:
 
 ## FCI plugins
 
-Currently, there are 2 plugins supported by this plugin.
-Note that not all subcommands have been supported.
+Currently, there are a few plugins supported by this plugin.
+Note that not all subcommands have been supported for each plugin.
 
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
 - [GitHub CLI](https://github.com/cli/cli)
 - [gcloud](https://cloud.google.com/cli?hl=en)
 - [1Password CLI](https://developer.1password.com/docs/cli/)
+- [ghq](https://github.com/x-motemen/ghq)
+    - This plugin uses GitHub CLI
+
 
 ## Customize
 
@@ -66,6 +69,10 @@ set -U FISH_COMPLETION_INTERCEPTOR_PLUGINS $FISH_COMPLETION_INTERCEPTOR_PLUGINS 
 For more details, see [the plugin spec doc](./docs/plugin_spec.md).
 
 ## Development
+
+### To start developing a new plugin
+
+Run `make new_fzf_plugin`, and type a command name, then update files for the template for new files.
 
 ### Dependencies
 

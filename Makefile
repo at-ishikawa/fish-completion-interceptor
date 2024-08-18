@@ -9,3 +9,6 @@ generate:
 
 test:
 	fish -c "fishtape tests/*.fish"
+
+new_fzf_plugin:
+	fish commands/new_fzf_plugin.fish
