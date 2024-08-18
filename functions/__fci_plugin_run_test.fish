@@ -1,15 +1,15 @@
 function __fci_plugin_run_test \
     --description "This function is used for a fishtape for testing a plugin"
 
-    argparse plugin_function= \
+    argparse 'plugin-function=' \
         'description=' \
         'command=' \
-        'mock_fzf_stdout=' \
-        'mock_fzf_status=' \
-        'expected_fzf_option=' \
-        'expected_status=' \
-        'expected_stdout=' \
-        'expected_stderr=' \
+        'mock-fzf-stdout=' \
+        'mock-fzf-status=' \
+        'expected-fzf-option=' \
+        'expected-status=' \
+        'expected-stdout=' \
+        'expected-stderr=' \
         -- $argv
 
     set -l expected_fzf_option $_flag_expected_fzf_option

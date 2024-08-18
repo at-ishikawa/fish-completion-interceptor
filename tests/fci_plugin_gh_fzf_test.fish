@@ -2,35 +2,15 @@ set __FCI_PLUGIN_GH_FZF_GH_CLI mock_gh
 set __FCI_PLUGIN_GH_FZF_DEFAULT_ORG test-org
 set FISH_COMPLETION_INTERCEPTOR_FZF_CLI mock_fzf
 
-function run_gh_test \
-    -a commandline_arg \
-    -a expected_status \
-    -a expected_stdout
-    set -l commandline_args (string split " " $commandline_arg)
-
-    set -l actual_stdout (fci_plugin_gh_fzf $commandline_args 2>| read -z actual_stderr)
-    set -l actual_status $pipestatus[1]
-
-    @test "command status" $actual_status -eq $expected_status
-    @test "command stdout" "$actual_stdout" = "$expected_stdout"
-    @test "command stderr" -z "$actual_stderr"
+function run_gh_test
+    __fci_plugin_run_test \
+        --plugin-function=fci_plugin_gh_fzf \
+        $argv
 end
 
-function run_gh_pr_test_cases
-    function run_successful_test_cases
+function run_test_cases
+    function pr_run_successful_test_cases
         set -l mock_repo org/repo
-
-        set -l test_descriptions \
-            "gh pr view with an argument" \
-            "gh pr view with a R option" \
-            "gh pr view with a repo option" \
-            "gh pr diff with a repo option"
-
-        set -l test_cases \
-            "gh pr view 1" \
-            "gh pr view -R $mock_repo " \
-            "gh pr view --repo $mock_repo 12" \
-            "gh pr diff --repo $mock_repo "
 
         set option \
             "--prompt=Your PRs> " \
@@ -39,70 +19,48 @@ function run_gh_pr_test_cases
             "--bind=ctrl-s:change-prompt(Your PRs> )+reload(mock_gh pr list --search 'state:open author:@me' )" \
             "--bind=ctrl-r:change-prompt(Other PRs> )+reload(mock_gh pr list --search 'state:open review:required review-requested:@me' )"
 
-        set -l expected_fzf_options \
-            "$option --preview=gh pr view {1} --query=1 $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh pr view {1} --repo=$mock_repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh pr view {1} --repo=$mock_repo --query=12 $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh pr view {1} --repo=$mock_repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS"
-
-        set -l expected_stdouts \
-            12 \
-            12 \
-            12 \
-            12 \
-            12
-
-        for test_case_index in (seq 1 (count $test_cases))
-            set expected_fzf_option $expected_fzf_options[$test_case_index]
-            function mock_fzf --inherit-variable expected_fzf_option
-                if [ "$expected_fzf_option" != "$argv" ]
-                    echo "fzf options: (expected $expected_fzf_option, actual: $argv)" >&2
-                    return 255
-                end
-
-                echo "12    PR TITLE 12 branch12"
-                return 0
-            end
-
-            set -l test_case $test_cases[$test_case_index]
-            set -l expected_status 0
-            set -l expected_stdout $expected_stdouts[$test_case_index]
-
-            @echo "Successful test case $test_case_index: $test_descriptions[$test_case_index]"
-            run_gh_test $test_case $expected_status $expected_stdout
-        end
+        run_gh_test \
+            --description "gh pr view with an argument" \
+            --command "gh pr view 1" \
+            --expected-fzf-option "$option --preview=gh pr view {1} --query=1 $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout "12    PR TITLE 12 branch12" \
+            --expected-stdout "12"
+        run_gh_test \
+            --description "gh pr view with a R option" \
+            --command "gh pr -R $mock_repo " \
+            --expected-fzf-option "$option --preview=gh pr view {1} --repo=$mock_repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout "12    PR TITLE 12 branch12" \
+            --expected-stdout "12"
+        run_gh_test \
+            --description "gh pr view with a repo option" \
+            --command "gh pr view --repo $mock_repo 12" \
+            --expected-fzf-option "$option --preview=gh pr view {1} --repo=$mock_repo --query=12 $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout "12    PR TITLE 12 branch12" \
+            --expected-stdout "12"
+        run_gh_test \
+            --description "gh pr diff with a repo option" \
+            --command "gh pr diff --repo $mock_repo " \
+            --expected-fzf-option "$option --preview=gh pr view {1} --repo=$mock_repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout "12    PR TITLE 12 branch12" \
+            --expected-stdout "12"
     end
 
-    function run_error_test_cases
-        function mock_fzf
-            return 130
-        end
-        @echo === "Error test case fzf was canceled"
-        run_gh_test "gh pr view " 130 ""
+    function pr_run_error_test_cases
+        run_gh_test \
+            --description="fzf was canceled" \
+            --command "gh pr view " \
+            --mock-fzf-status 130 \
+            --expected-status 130
     end
 
-    @echo == Supported commands
-    run_successful_test_cases
+    @echo == gh pr: Supported commands
+    pr_run_successful_test_cases
 
-    @echo == Error cases
-    run_error_test_cases
-end
+    @echo == gh pr: Error cases
+    pr_run_error_test_cases
 
-function run_gh_repo_test_cases
-    function run_successful_test_cases
+    function repo_run_successful_test_cases
         set -l mock_repo org/repo
-
-        set -l test_descriptions \
-            "gh repo view without an argument" \
-            "gh repo view with an option" \
-            "gh repo view with an organization arg" \
-            "gh repo view with a full repository"
-
-        set -l test_cases \
-            "gh repo view " \
-            "gh repo view -b branch" \
-            "gh repo view org/r" \
-            "gh repo view org/repo"
 
         set option \
             "--header=Type \$ORGANIZATION/\$REPOSITORY format as a query and search repositories under the \$ORGANIZATION"
@@ -111,53 +69,47 @@ function run_gh_repo_test_cases
             "--bind=start:reload($command)" \
             "--bind=change:reload($command)"
 
-        set -l expected_fzf_options \
-            "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/ $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/branch $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh repo view {1} --query=org/r $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
-            "$option --preview=gh repo view {1} --query=org/repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS"
-
-        set -l expected_stdouts \
-            org/repo \
-            org/repo \
-            org/repo \
-            org/repo
-
-        for test_case_index in (seq 1 (count $test_cases))
-            set expected_fzf_option $expected_fzf_options[$test_case_index]
-            function mock_fzf --inherit-variable expected_fzf_option
-                if [ "$expected_fzf_option" != "$argv" ]
-                    echo "fzf options: (expected $expected_fzf_option, actual: $argv)" >&2
-                    return 255
-                end
-
-                echo "org/repo    description    public    about 4 days ago"
-                return 0
-            end
-
-            set -l test_case $test_cases[$test_case_index]
-            set -l expected_status 0
-            set -l expected_stdout $expected_stdouts[$test_case_index]
-
-            @echo "Successful test case $test_case_index: $test_descriptions[$test_case_index]"
-            run_gh_test $test_case $expected_status $expected_stdout
-        end
+        set -l mock_fzf_stdout "org/repo    description    public    about 4 days ago"
+        set -l expected_stdout "org/repo"
+        run_gh_test \
+            --description "gh repo view without an argument" \
+            --command "gh repo view " \
+            --expected-fzf-option "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/ $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout $mock_fzf_stdout \
+            --expected-stdout $expected_stdout
+        run_gh_test \
+            --description "gh repo view with an option" \
+            --command "gh repo view -b branch" \
+            --expected-fzf-option "$option --preview=gh repo view {1} --query=$__FCI_PLUGIN_GH_FZF_DEFAULT_ORG/branch $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout $mock_fzf_stdout \
+            --expected-stdout $expected_stdout
+        run_gh_test \
+            --description "gh repo view with an organization arg" \
+            --command "gh repo view org/r" \
+            --expected-fzf-option "$option --preview=gh repo view {1} --query=org/r $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout $mock_fzf_stdout \
+            --expected-stdout $expected_stdout
+        run_gh_test \
+            --description "gh repo view with a full repository" \
+            --command "gh repo view org/repo" \
+            --expected-fzf-option "$option --preview=gh repo view {1} --query=org/repo $bind_option $FISH_COMPLETION_INTERCEPTOR_FZF_OPTIONS" \
+            --mock-fzf-stdout $mock_fzf_stdout \
+            --expected-stdout $expected_stdout
     end
 
-    function run_error_test_cases
-        function mock_fzf
-            return 130
-        end
-        @echo === "Error test case fzf was canceled"
-        run_gh_test "gh repo view test/" 130 ""
+    function repo_run_error_test_cases
+        run_gh_test \
+            --description="fzf was canceled" \
+            --command "gh repo view test/" \
+            --mock-fzf-status 130 \
+            --expected-status 130
     end
 
-    @echo == Supported commands
-    run_successful_test_cases
+    @echo == gh repo: Supported commands
+    repo_run_successful_test_cases
 
-    @echo == Error cases
-    run_error_test_cases
+    @echo == gh repo: Error cases
+    repo_run_error_test_cases
 end
 
-run_gh_pr_test_cases
-run_gh_repo_test_cases
+run_test_cases
