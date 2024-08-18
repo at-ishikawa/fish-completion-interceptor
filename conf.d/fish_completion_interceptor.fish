@@ -13,3 +13,5 @@ set FISH_COMPLETION_INTERCEPTOR_FZF_CLI fzf
 if $FISH_COMPLETION_INTERCEPTOR_ENABLED
     bind \t fish_completion_interceptor
 end
+
+set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS ghq=fci_plugin_ghq_fzf
