@@ -27,7 +27,7 @@ function __fci_plugin_run_test \
     end
 
     set -l command $_flag_command
-    @echo "Test case $_flag_description: $command"
+    @echo "Test case: $_flag_description: $command"
 
     set -l commandline_args (string split " " $command)
     set -l actual_stdout ($_flag_plugin_function $commandline_args 2>| read -z actual_stderr)
