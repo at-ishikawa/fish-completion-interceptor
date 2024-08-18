@@ -31,7 +31,7 @@ function run_gcloud_test
     end
 
     __fci_plugin_run_test \
-        --plugin_function=fci_plugin_gcloud_fzf \
+        --plugin-function=fci_plugin_gcloud_fzf \
         $argv
 end
 
