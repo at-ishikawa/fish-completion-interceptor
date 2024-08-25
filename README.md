@@ -6,7 +6,7 @@ This plugin is to run a command for specific commands instead of showing regular
 
 The next demo shows for the usage of `kubectl get pods` with fzf for a completion by this plugin.
 
-![Demo](./docs/videos/kubectl_demo.gif)
+![Demo](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTUwbHM4MzM3YWhuOG4yeXhicjJtenR6YnM1M3FvZ3dhcXAyOHNtdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/H9DV5l975q3xUcT8tL/giphy.gif)
 
 ## Requirements
 
