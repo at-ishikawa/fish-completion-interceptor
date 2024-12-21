@@ -39,8 +39,17 @@ function __fci_plugin_run_test \
         end
 
         if test -n "$expected_fzf_option"; and [ "$expected_fzf_option" != "$argv" ]
-            set -l diff (diff (echo $argv | string split ' ' | psub) (echo $expected_fzf_option | string split ' ' | psub))
-            echo "fzf argv diff: $diff" >&2
+            # set -l diff (diff (echo $argv | string split ' ' | psub) (echo $expected_fzf_option | string split ' ' | psub))
+            # echo "fzf argv diff: $diff" >&2
+
+            set -l actual "$argv"
+            set -l expected "$expected_fzf_option"
+
+            echo "not ok - fzf options" >&2
+            echo "  ---" >&2
+            echo "    expected: $expected" >&2
+            echo "    actual: $actual" >&2
+            echo "  ..." >&2
             return 255
         end
         echo -e "$_flag_mock_fzf_stdout"
