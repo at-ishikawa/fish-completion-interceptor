@@ -1,0 +1,1 @@
+set __FCI_PLUGIN_AWS_FZF_AWS_CLI aws
