@@ -1,18 +1,25 @@
 __fci_functions
 
 function __fci_plugin_argocd_fzf_context_list
-    argparse "query=?" -- $argv; or return 1
+    argparse "query=?" "column=?" -- $argv; or return 1
 
     set -l fzf_options --header-lines=1
     if [ -n "$_flag_query" ]
         set -a fzf_options "--query=$_flag_query"
     end
 
+    # argocd context output: CURRENT  NAME  SERVER
+    # Default to column 2 (NAME)
+    set -l column 2
+    if [ -n "$_flag_column" ]
+        set column $_flag_column
+    end
+
     set -l argocd_context_command "$__FCI_PLUGIN_ARGOCD_FZF_ARGOCD_CLI context"
 
     FZF_DEFAULT_COMMAND="$argocd_context_command" \
         __fci_fzf $fzf_options |
-        awk '{ print $1 }' |
+        awk "{ print \$$column }" |
         string trim
     return $pipestatus[1]
 end
@@ -106,7 +113,8 @@ function fci_plugin_argocd_fzf \
             if [ "$subcommand" = "$query" ]
                 set query ''
             end
-            __fci_plugin_argocd_fzf_context_list "--query=$query"
+            # argocd login takes a server URL (column 3)
+            __fci_plugin_argocd_fzf_context_list "--query=$query" --column=3
             return $status
         case '*'
             return 0
