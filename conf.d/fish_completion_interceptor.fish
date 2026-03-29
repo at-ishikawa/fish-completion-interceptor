@@ -15,3 +15,4 @@ set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS gcloud=fci_plugin_gcloud_fzf
 set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS op=fci_plugin_op_fzf
 set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS ghq=fci_plugin_ghq_fzf
 set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS aws=fci_plugin_aws_fzf
+set -a FISH_COMPLETION_INTERCEPTOR_PLUGINS argocd=fci_plugin_argocd_fzf

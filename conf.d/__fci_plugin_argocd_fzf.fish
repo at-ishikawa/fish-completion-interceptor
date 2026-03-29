@@ -1,0 +1,1 @@
+set __FCI_PLUGIN_ARGOCD_FZF_ARGOCD_CLI argocd
